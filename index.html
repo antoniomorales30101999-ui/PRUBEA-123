@@ -54,7 +54,6 @@
         .table { color: #333 !important; }
         .table thead th { background: linear-gradient(135deg, #004a99, #0077b6) !important; color: white !important; font-size: 0.75rem; padding: 15px 12px !important; }
 
-        /* --- ESTILOS DE ESTADO (COLORES) --- */
         .fila-cancelada { background-color: #ffcccc !important; color: #990000 !important; font-weight: 500; }
         .fila-inactiva { background-color: #e2e8f0 !important; color: #475569 !important; }
         .not-found { background: rgba(255, 82, 82, 0.1) !important; color: #ff5252 !important; }
@@ -134,7 +133,7 @@
                     <table id="tablaResultados" class="table table-hover w-100">
                         <thead>
                             <tr>
-                                <th>Cuenta</th> <th>QR</th> <th>OLT</th> <th>FSP</th> <th>Estatus</th> <th>Clientes en QR</th>
+                                <th>Cuenta</th> <th>QR</th> <th>OLT</th> <th>FSP</th> <th>Lat</th> <th>Lon</th> <th>Estatus</th> <th>Clientes en QR</th>
                             </tr>
                         </thead>
                         <tbody id="bodyResultados"></tbody>
@@ -155,7 +154,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 
     <script>
-        $.fn.dataTable.ext.errMode = 'none'; // EVITA ALERTAS DE PARÁMETROS DESCONOCIDOS
+        $.fn.dataTable.ext.errMode = 'none';
 
         var table;
         var tableResultados;
@@ -247,7 +246,6 @@
             var noEncontrados = 0;
             var html = '';
 
-            // Primero mapear conteo de QRs
             cuentas.forEach(c => {
                 var d = datosIndexados[c];
                 if(d) {
@@ -270,12 +268,14 @@
                         <td><span class="qr-badge ${badgeClass}">${d[1]}</span></td>
                         <td>${d[2]}</td>
                         <td>${d[3]}</td>
+                        <td>${d[4] || ''}</td>
+                        <td>${d[5] || ''}</td>
                         <td>${est}</td>
                         <td>${qrCount}</td>
                     </tr>`;
                 } else {
                     noEncontrados++;
-                    html += `<tr class="not-found"><td>${cuenta}</td><td colspan="5">NO ENCONTRADO EN BASE</td></tr>`;
+                    html += `<tr class="not-found"><td>${cuenta}</td><td colspan="7">NO ENCONTRADO EN BASE</td></tr>`;
                 }
             });
 
