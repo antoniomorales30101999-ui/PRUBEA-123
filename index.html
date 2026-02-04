@@ -22,7 +22,6 @@
         * { box-sizing: border-box; }
         body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; color: #e8e8e8; font-family: 'Segoe UI', sans-serif; padding: 0; margin: 0; }
         .app-header { background: linear-gradient(135deg, #00d4ff 0%, #0077b6 50%, #004a99 100%); color: white; padding: 30px 20px; text-align: center; box-shadow: 0 4px 30px rgba(0, 212, 255, 0.3); position: relative; overflow: hidden; }
-        .app-header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
         .app-header h1 { font-size: 2rem; font-weight: 700; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); position: relative; z-index: 1; }
         .app-header p { opacity: 0.9; font-size: 1rem; margin-top: 8px; position: relative; z-index: 1; }
         .main-container { max-width: 1400px; margin: 0 auto; padding: 30px 20px; }
@@ -55,10 +54,9 @@
         .not-found { background: rgba(255, 82, 82, 0.1) !important; color: #ff5252 !important; }
         .footer-info { text-align: center; padding: 20px; color: #666; font-size: 0.85rem; }
 
-        /* NUEVOS ESTILOS PARA ESTADOS DE CUENTA */
+        /* ESTILOS PARA ESTADOS DE CUENTA */
         .fila-inactiva { background-color: #d6d6d6 !important; color: #555 !important; }
         .fila-cancelada { background-color: #ffcccc !important; color: #990000 !important; }
-        /* Activa se mantiene sin fondo especial (fondo blanco de la tabla) */
     </style>
 </head>
 
@@ -165,6 +163,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 
     <script>
+        // --- SEGURO ANTI-ERRORES ---
+        $.fn.dataTable.ext.errMode = 'none'; 
+        
         var table;
         var tableResultados;
         var datosCSV = [];
@@ -203,9 +204,10 @@
                         dom: 'rtip',
                         pageLength: 25,
                         language: { "info": "Mostrando _TOTAL_ registros", "paginate": { "next": "Sig", "previous": "Ant" } },
-                        // LÓGICA DE COLORES POR FILA
+                        // SI FALTA LA COLUMNA 8, SE PONE "ACTIVA"
+                        columnDefs: [{ targets: 8, defaultContent: "ACTIVA" }],
                         createdRow: function(row, data, dataIndex) {
-                            var estatus = (data[8] || "").toUpperCase(); // Columna 9 (Índice 8)
+                            var estatus = (data && data[8] ? data[8] : "ACTIVA").toUpperCase();
                             if (estatus === "INACTIVA") {
                                 $(row).addClass('fila-inactiva');
                             } else if (estatus === "CANCELADA") {
@@ -290,9 +292,9 @@
             var html = '';
             resultados.forEach(function (r) {
                 var rowClass = r.encontrado ? '' : 'not-found';
-                // Aplicar color según estatus también en resultados
-                if(r.estatus.toUpperCase() === "INACTIVA") rowClass += ' fila-inactiva';
-                if(r.estatus.toUpperCase() === "CANCELADA") rowClass += ' fila-cancelada';
+                var estTxt = (r.estatus || "").toUpperCase();
+                if(estTxt === "INACTIVA") rowClass += ' fila-inactiva';
+                if(estTxt === "CANCELADA") rowClass += ' fila-cancelada';
 
                 var qrCount = conteoQR[r.qr] || 0;
                 var badgeClass = qrCount >= 5 ? 'qr-hot' : (qrCount >= 3 ? 'qr-warm' : 'qr-normal');
@@ -316,7 +318,8 @@
             tableResultados = $('#tablaResultados').DataTable({
                 dom: 'rtip',
                 pageLength: 50,
-                language: { "info": "Mostrando _TOTAL_ resultados", "paginate": { "next": "Sig", "previous": "Ant" } }
+                language: { "info": "Mostrando _TOTAL_ resultados", "paginate": { "next": "Sig", "previous": "Ant" } },
+                columnDefs: [{ targets: 8, defaultContent: "ACTIVA" }]
             });
 
             $('#statTotal').text(cuentas.length);
