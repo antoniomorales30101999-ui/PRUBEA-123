@@ -4,12 +4,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RED TECAMAC - Sistema Integral</title>
+    <title>RED TECAMAC - Análisis de Afectaciones</title>
 
     <script>
         var claveCorrecta = "Tecamac2026*";
         if (sessionStorage.getItem("acceso_permitido") !== "true") {
-            var intento = prompt("🔐 ACCESO RESTRINGIDO\nIngrese clave:");
+            var intento = prompt("🔐 ACCESO\nIngrese clave:");
             if (intento === claveCorrecta) { sessionStorage.setItem("acceso_permitido", "true"); }
             else { window.location.href = "https://google.com"; }
         }
@@ -21,37 +21,49 @@
     <style>
         * { box-sizing: border-box; }
         body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; color: #e8e8e8; font-family: 'Segoe UI', sans-serif; padding: 0; margin: 0; }
-        .app-header { background: linear-gradient(135deg, #00d4ff 0%, #0077b6 50%, #004a99 100%); color: white; padding: 30px 20px; text-align: center; box-shadow: 0 4px 30px rgba(0, 212, 255, 0.3); position: relative; }
+        .app-header { background: linear-gradient(135deg, #00d4ff 0%, #0077b6 50%, #004a99 100%); color: white; padding: 30px 20px; text-align: center; box-shadow: 0 4px 30px rgba(0, 212, 255, 0.3); position: relative; overflow: hidden; }
+        .app-header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
+        .app-header h1 { font-size: 2rem; font-weight: 700; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); position: relative; z-index: 1; }
+        .app-header p { opacity: 0.9; font-size: 1rem; margin-top: 8px; position: relative; z-index: 1; }
         .main-container { max-width: 1400px; margin: 0 auto; padding: 30px 20px; }
-        
         .nav-tabs-custom { display: flex; gap: 10px; margin-bottom: 25px; justify-content: center; }
         .tab-btn { background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(0, 212, 255, 0.3); color: #ccc; padding: 15px 35px; border-radius: 50px; cursor: pointer; font-size: 1rem; font-weight: 600; transition: all 0.3s ease; backdrop-filter: blur(10px); }
+        .tab-btn:hover { background: rgba(0, 212, 255, 0.2); border-color: #00d4ff; color: white; transform: translateY(-2px); }
         .tab-btn.active { background: linear-gradient(135deg, #00d4ff, #0077b6); border-color: #00d4ff; color: white; box-shadow: 0 5px 25px rgba(0, 212, 255, 0.4); }
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
         
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        
         .search-wrapper { max-width: 700px; margin: 0 auto 30px auto; }
-        #mainSearch { background: rgba(255, 255, 255, 0.95); border: none; border-radius: 50px !important; padding: 20px 30px !important; width: 100% !important; font-size: 1.1rem; box-shadow: 0 10px 40px rgba(0,0,0,0.3); outline: none; color: #333; }
+        #mainSearch { background: rgba(255, 255, 255, 0.95); border: none; border-radius: 50px !important; padding: 20px 30px !important; width: 100% !important; font-size: 1.1rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); outline: none; color: #333; transition: all 0.3s ease; }
+        #mainSearch:focus { box-shadow: 0 10px 50px rgba(0, 212, 255, 0.5); transform: scale(1.02); }
         
-        .analysis-panel { background: rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 30px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
-        .paste-area { background: rgba(0, 0, 0, 0.3); border: 2px dashed rgba(0, 212, 255, 0.5); border-radius: 15px; padding: 20px; min-height: 200px; color: #ccc; width: 100%; outline: none; }
+        .analysis-panel { background: rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 30px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
+        .paste-area { background: rgba(0, 0, 0, 0.3); border: 2px dashed rgba(0, 212, 255, 0.5); border-radius: 15px; padding: 20px; min-height: 200px; color: #ccc; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.85rem; resize: vertical; width: 100%; outline: none; transition: all 0.3s ease; }
+        .btn-analyze { background: linear-gradient(135deg, #00d4ff, #0077b6); border: none; color: white; padding: 15px 50px; border-radius: 50px; font-size: 1.1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 20px; box-shadow: 0 5px 25px rgba(0, 212, 255, 0.4); }
+        .btn-clear { background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); color: #ccc; padding: 15px 30px; border-radius: 50px; font-size: 1rem; cursor: pointer; transition: all 0.3s ease; margin-top: 20px; margin-left: 10px; }
         
+        .results-panel { margin-top: 30px; display: none; }
+        .results-panel.visible { display: block; }
         .stats-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 15px; margin-bottom: 25px; }
-        .stat-card { background: rgba(255, 255, 255, 0.08); border-radius: 15px; padding: 20px; text-align: center; border: 1px solid rgba(255,255,255,0.1); }
-        .stat-card .number { font-size: 2.5rem; font-weight: 700; color: #00d4ff; }
-
-        #contenedorTabla, #contenedorResultados { background: white; border-radius: 20px; padding: 20px; color: #333; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-        .table thead th { background: #004a99 !important; color: white !important; }
-
-        /* --- CORRECCIÓN DE COLORES --- */
-        .fila-cancelada { background-color: #ffcccc !important; color: #990000 !important; }
-        .fila-inactiva { background-color: #e2e8f0 !important; color: #475569 !important; }
-        .not-found { background-color: #fee2e2 !important; color: #dc2626 !important; }
-
-        .qr-badge { padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; }
-        .qr-hot { background: #ff416c; color: white; }
+        .stat-card { background: rgba(255, 255, 255, 0.08); border-radius: 15px; padding: 20px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1); }
+        .stat-card .number { font-size: 2.5rem; font-weight: 700; background: linear-gradient(135deg, #00d4ff, #ff6b6b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        #contenedorTabla, #contenedorResultados { background: rgba(255, 255, 255, 0.95); border-radius: 20px; padding: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); color: #333; }
+        .table { color: #333 !important; }
+        .table thead th { background: linear-gradient(135deg, #004a99, #0077b6) !important; color: white !important; font-size: 0.75rem; padding: 15px 12px !important; }
+
+        /* --- ESTILOS DE ESTADO (COLORES) --- */
+        .fila-cancelada { background-color: #ffcccc !important; color: #990000 !important; font-weight: 500; }
+        .fila-inactiva { background-color: #e2e8f0 !important; color: #475569 !important; }
+        .not-found { background: rgba(255, 82, 82, 0.1) !important; color: #ff5252 !important; }
+
+        .qr-badge { display: inline-block; padding: 5px 12px; border-radius: 20px; font-weight: 600; font-size: 0.85rem; }
+        .qr-hot { background: linear-gradient(135deg, #ff416c, #ff4b2b); color: white; }
+        .qr-warm { background: linear-gradient(135deg, #f7971e, #ffd200); color: #333; }
+        .qr-normal { background: rgba(0, 119, 182, 0.15); color: #0077b6; }
+        .footer-info { text-align: center; padding: 20px; color: #666; font-size: 0.85rem; }
     </style>
 </head>
 
@@ -59,7 +71,7 @@
 
     <div class="app-header">
         <h1>🛰️ SISTEMA CORE TECAMAC</h1>
-        <p>Búsqueda y Análisis de Afectaciones Masivas</p>
+        <p>Análisis de Red y Afectaciones Masivas</p>
     </div>
 
     <div class="main-container">
@@ -71,9 +83,13 @@
 
         <div id="tab-busqueda" class="tab-content active">
             <div class="search-wrapper">
-                <input type="text" id="mainSearch" placeholder="🔍 Buscar por Cuenta, QR u OLT...">
+                <input type="text" id="mainSearch" placeholder="🔍 Buscar por Cuenta, QR u OLT..." autocomplete="off">
             </div>
-            <div id="contenedorTabla">
+            <div id="mensajeVacio" class="text-center mt-5">
+                <p style="font-size: 3rem; margin-bottom: 10px;">📡</p>
+                <p>Ingresa un término de búsqueda...</p>
+            </div>
+            <div id="contenedorTabla" style="display: none;">
                 <table id="tablaMaestra" class="table table-hover w-100">
                     <thead>
                         <tr>
@@ -86,19 +102,34 @@
 
         <div id="tab-analisis" class="tab-content">
             <div class="analysis-panel">
+                <h4 style="color: #00d4ff; margin-bottom: 20px;">📋 Pegar datos del OLT</h4>
                 <textarea id="pasteArea" class="paste-area" placeholder="Pega aquí los datos del OLT..."></textarea>
-                <div class="text-center mt-3">
-                    <button class="btn btn-primary btn-lg rounded-pill px-5" onclick="analizarDatos()">🔎 Analizar Afectación</button>
-                    <button class="btn btn-outline-light btn-lg rounded-pill px-5" onclick="limpiarAnalisis()">🗑️ Limpiar</button>
+                <div class="text-center">
+                    <button class="btn-analyze" onclick="analizarDatos()">🔎 Analizar Afectación</button>
+                    <button class="btn-clear" onclick="limpiarAnalisis()">🗑️ Limpiar</button>
                 </div>
             </div>
 
-            <div id="resultadosAnalisis" class="mt-4" style="display:none;">
+            <div id="resultadosAnalisis" class="results-panel">
                 <div class="stats-cards">
-                    <div class="stat-card"><div class="number" id="statTotal">0</div><div class="label">Total</div></div>
-                    <div class="stat-card"><div class="number" id="statEncontrados">0</div><div class="label">Encontrados</div></div>
-                    <div class="stat-card"><div class="number" id="statQRs">0</div><div class="label">QRs Únicos</div></div>
+                    <div class="stat-card">
+                        <div class="number" id="statTotal">0</div>
+                        <div class="label">Clientes Analizados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number" id="statEncontrados">0</div>
+                        <div class="label">Encontrados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number" id="statNoEncontrados">0</div>
+                        <div class="label">No Encontrados</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="number" id="statQRs">0</div>
+                        <div class="label">QRs Afectados</div>
+                    </div>
                 </div>
+
                 <div id="contenedorResultados">
                     <table id="tablaResultados" class="table table-hover w-100">
                         <thead>
@@ -114,14 +145,18 @@
 
     </div>
 
+    <div class="footer-info">
+        Sistema Core Tecamac | Datos cargados: <span id="totalRegistros">0</span> registros
+    </div>
+
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 
     <script>
-        $.fn.dataTable.ext.errMode = 'none'; 
-        
+        $.fn.dataTable.ext.errMode = 'none'; // EVITA ALERTAS DE PARÁMETROS DESCONOCIDOS
+
         var table;
         var tableResultados;
         var datosCSV = [];
@@ -129,10 +164,11 @@
 
         $(document).ready(function () {
             $('.tab-btn').on('click', function () {
+                var tabId = $(this).data('tab');
                 $('.tab-btn').removeClass('active');
                 $(this).addClass('active');
                 $('.tab-content').removeClass('active');
-                $('#tab-' + $(this).data('tab')).addClass('active');
+                $('#tab-' + tabId).addClass('active');
             });
 
             Papa.parse("datos.csv", {
@@ -141,97 +177,128 @@
                 skipEmptyLines: true,
                 complete: function (results) {
                     datosCSV = results.data.slice(1);
+                    $('#totalRegistros').text(datosCSV.length.toLocaleString());
 
-                    datosCSV.forEach(function(row) {
-                        if(row[0]) {
-                            var cuenta = row[0].replace(/[^0-9]/g, '').trim();
-                            datosIndexados[cuenta] = row;
+                    datosCSV.forEach(function (row) {
+                        if (row[0]) {
+                            var cuentaLimpia = row[0].replace(/[^0-9]/g, '').trim();
+                            datosIndexados[cuentaLimpia] = row;
                         }
                     });
 
                     table = $('#tablaMaestra').DataTable({
                         data: datosCSV,
+                        deferRender: true,
+                        scrollY: "50vh",
+                        scrollCollapse: true,
                         dom: 'rtip',
-                        pageLength: 20,
+                        pageLength: 25,
+                        language: { "info": "Mostrando _TOTAL_ registros", "paginate": { "next": "Sig", "previous": "Ant" } },
                         columnDefs: [{ targets: 8, defaultContent: "ACTIVA" }],
                         createdRow: function(row, data, dataIndex) {
                             var estatus = (data[8] || "").toUpperCase().trim();
-                            if (estatus === "CANCELADA") {
-                                $(row).addClass('fila-cancelada');
-                            } else if (estatus === "INACTIVA") {
-                                $(row).addClass('fila-inactiva');
-                            }
+                            if (estatus === "CANCELADA") $(row).addClass('fila-cancelada');
+                            else if (estatus === "INACTIVA") $(row).addClass('fila-inactiva');
                         }
                     });
 
-                    $('#mainSearch').on('keyup', function () { table.search(this.value).draw(); });
+                    $('#mainSearch').on('keyup input', function () {
+                        var val = $(this).val().trim();
+                        if (val.length < 1) {
+                            $('#contenedorTabla').hide();
+                            $('#mensajeVacio').show();
+                            table.search('').draw();
+                        } else {
+                            $('#contenedorTabla').show();
+                            $('#mensajeVacio').hide();
+                            table.search(val).draw();
+                        }
+                    });
                 }
             });
         });
 
+        function extraerCuentas(texto) {
+            var cuentas = [];
+            var lineas = texto.split('\n');
+            lineas.forEach(function (linea) {
+                linea = linea.trim();
+                if (!linea) return;
+                var matchDesc = linea.match(/(\d{10})_TP_/i);
+                if (matchDesc) {
+                    cuentas.push(matchDesc[1]);
+                } else {
+                    var matchNumeros = linea.match(/\b(0\d{9})\b/g);
+                    if (matchNumeros) { matchNumeros.forEach(n => cuentas.push(n)); }
+                }
+            });
+            return [...new Set(cuentas)];
+        }
+
         function analizarDatos() {
             var texto = $('#pasteArea').val();
-            if (!texto.trim()) return;
+            if (!texto.trim()) return alert('Pega los datos primero.');
 
-            var cuentas = texto.match(/\b\d{10}\b/g) || [];
-            cuentas = [...new Set(cuentas)]; 
+            if (tableResultados) { tableResultados.destroy(); }
 
-            var html = '';
+            var cuentas = extraerCuentas(texto);
+            var conteoQR = {};
             var encontrados = 0;
-            var qrsConteo = {};
+            var noEncontrados = 0;
+            var html = '';
 
+            // Primero mapear conteo de QRs
             cuentas.forEach(c => {
                 var d = datosIndexados[c];
                 if(d) {
                     var qr = d[1] || 'N/A';
-                    qrsConteo[qr] = (qrsConteo[qr] || 0) + 1;
+                    conteoQR[qr] = (conteoQR[qr] || 0) + 1;
                 }
             });
 
-            cuentas.forEach(c => {
-                var d = datosIndexados[c];
-                if(d) {
+            cuentas.forEach(function (cuenta) {
+                var d = datosIndexados[cuenta];
+                if (d) {
                     encontrados++;
                     var est = (d[8] || "ACTIVA").toUpperCase().trim();
-                    var rowCl = "";
-                    if (est === "CANCELADA") rowCl = "fila-cancelada";
-                    else if (est === "INACTIVA") rowCl = "fila-inactiva";
-                    
+                    var qrCount = conteoQR[d[1]] || 0;
+                    var badgeClass = qrCount >= 5 ? 'qr-hot' : (qrCount >= 3 ? 'qr-warm' : 'qr-normal');
+                    var rowCl = (est === "CANCELADA") ? "fila-cancelada" : (est === "INACTIVA" ? "fila-inactiva" : "");
+
                     html += `<tr class="${rowCl}">
-                        <td>${c}</td>
-                        <td><span class="qr-badge ${qrsConteo[d[1]] > 3 ? 'qr-hot' : ''}">${d[1]}</span></td>
+                        <td><strong>${cuenta}</strong></td>
+                        <td><span class="qr-badge ${badgeClass}">${d[1]}</span></td>
                         <td>${d[2]}</td>
                         <td>${d[3]}</td>
                         <td>${est}</td>
-                        <td><strong>${qrsConteo[d[1]]}</strong></td>
+                        <td>${qrCount}</td>
                     </tr>`;
                 } else {
-                    html += `<tr class="not-found"><td>${c}</td><td colspan="5">NO ENCONTRADO EN BASE</td></tr>`;
+                    noEncontrados++;
+                    html += `<tr class="not-found"><td>${cuenta}</td><td colspan="5">NO ENCONTRADO EN BASE</td></tr>`;
                 }
             });
 
-            if (tableResultados) tableResultados.destroy();
             $('#bodyResultados').html(html);
-            $('#resultadosAnalisis').show();
+            
+            tableResultados = $('#tablaResultados').DataTable({
+                dom: 'rtip',
+                pageLength: 50,
+                language: { "info": "Mostrando _TOTAL_ resultados" }
+            });
+
             $('#statTotal').text(cuentas.length);
             $('#statEncontrados').text(encontrados);
-            $('#statQRs').text(Object.keys(qrsConteo).length);
-            
-            tableResultados = $('#tablaResultados').DataTable({ 
-                dom: 'rtip', 
-                pageLength: 50,
-                createdRow: function(row, data, dataIndex) {
-                    // Refuerzo de color para la tabla de análisis
-                    var est = (data[4] || "").toUpperCase().trim(); 
-                    if (est === "CANCELADA") $(row).addClass('fila-cancelada');
-                    else if (est === "INACTIVA") $(row).addClass('fila-inactiva');
-                }
-            });
+            $('#statNoEncontrados').text(noEncontrados);
+            $('#statQRs').text(Object.keys(conteoQR).length);
+            $('#resultadosAnalisis').addClass('visible');
         }
 
         function limpiarAnalisis() {
+            if (tableResultados) { tableResultados.destroy(); tableResultados = null; }
+            $('#bodyResultados').empty();
             $('#pasteArea').val('');
-            $('#resultadosAnalisis').hide();
+            $('#resultadosAnalisis').removeClass('visible');
         }
     </script>
 </body>
