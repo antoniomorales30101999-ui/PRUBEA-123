@@ -22,7 +22,6 @@
         * { box-sizing: border-box; }
         body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; color: #e8e8e8; font-family: 'Segoe UI', sans-serif; padding: 0; margin: 0; }
         .app-header { background: linear-gradient(135deg, #00d4ff 0%, #0077b6 50%, #004a99 100%); color: white; padding: 30px 20px; text-align: center; box-shadow: 0 4px 30px rgba(0, 212, 255, 0.3); position: relative; overflow: hidden; }
-        .app-header::before { content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E"); }
         .app-header h1 { font-size: 2rem; font-weight: 700; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); position: relative; z-index: 1; }
         .app-header p { opacity: 0.9; font-size: 1rem; margin-top: 8px; position: relative; z-index: 1; }
         .main-container { max-width: 1400px; margin: 0 auto; padding: 30px 20px; }
@@ -52,7 +51,15 @@
         
         #contenedorTabla, #contenedorResultados { background: rgba(255, 255, 255, 0.95); border-radius: 20px; padding: 20px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); color: #333; }
         .table { color: #333 !important; }
-        .table thead th { background: linear-gradient(135deg, #004a99, #0077b6) !important; color: white !important; font-size: 0.75rem; padding: 15px 12px !important; }
+        /* Mejora en las cabeceras para indicar que son clickeables */
+        .table thead th { 
+            background: linear-gradient(135deg, #004a99, #0077b6) !important; 
+            color: white !important; 
+            font-size: 0.75rem; 
+            padding: 15px 12px !important; 
+            cursor: pointer; 
+            position: relative;
+        }
 
         .fila-cancelada { background-color: #ffcccc !important; color: #990000 !important; font-weight: 500; }
         .fila-inactiva { background-color: #e2e8f0 !important; color: #475569 !important; }
@@ -281,13 +288,19 @@
 
             $('#bodyResultados').html(html);
             
+            // CONFIGURACIÓN PARA PERMITIR ORDENAR COMO FILTRO
             tableResultados = $('#tablaResultados').DataTable({
-                dom: 'rtip',
+                dom: 'frtip', // Añadimos 'f' para tener buscador interno también
                 pageLength: 50,
-                language: { "info": "Mostrando _TOTAL_ resultados" },
-                order: [[7, 'asc']], // Ordena por la columna 7 (Clientes en QR) ascendente
+                ordering: true, // Asegura que el ordenamiento esté activado
+                language: { 
+                    "info": "Mostrando _TOTAL_ resultados",
+                    "search": "Filtrar resultados:",
+                    "paginate": { "next": "Sig", "previous": "Ant" }
+                },
+                order: [[7, 'desc']], // Por defecto los más afectados arriba
                 columnDefs: [
-                    { type: 'num', targets: 7 } // Asegura que la columna sea tratada como número
+                    { type: 'num', targets: 7 } 
                 ]
             });
 
