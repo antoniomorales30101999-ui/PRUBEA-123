@@ -271,7 +271,7 @@
                         <td>${d[4] || ''}</td>
                         <td>${d[5] || ''}</td>
                         <td>${est}</td>
-                        <td>${qrCount}</td>
+                        <td data-order="${qrCount}">${qrCount}</td>
                     </tr>`;
                 } else {
                     noEncontrados++;
@@ -285,8 +285,10 @@
                 dom: 'rtip',
                 pageLength: 50,
                 language: { "info": "Mostrando _TOTAL_ resultados" },
-                // NUEVO: Ordenar por la columna 7 (Clientes en QR) de forma ascendente
-                order: [[7, 'asc']]
+                order: [[7, 'asc']], // Ordena por la columna 7 (Clientes en QR) ascendente
+                columnDefs: [
+                    { type: 'num', targets: 7 } // Asegura que la columna sea tratada como número
+                ]
             });
 
             $('#statTotal').text(cuentas.length);
