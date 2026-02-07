@@ -284,7 +284,9 @@
             tableResultados = $('#tablaResultados').DataTable({
                 dom: 'rtip',
                 pageLength: 50,
-                language: { "info": "Mostrando _TOTAL_ resultados" }
+                language: { "info": "Mostrando _TOTAL_ resultados" },
+                // NUEVO: Ordenar por la columna 7 (Clientes en QR) de forma ascendente
+                order: [[7, 'asc']]
             });
 
             $('#statTotal').text(cuentas.length);
