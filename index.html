@@ -1,326 +1,366 @@
 <!DOCTYPE html>
 <html lang="es">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RED TECAMAC - Análisis de Afectaciones</title>
-
-    <!-- Configuración PWA / Móvil -->
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#00d4ff">
-    <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="RedTecamac">
-
-    <script>
-        var claveCorrecta = "Tecamac2026*";
-        if (sessionStorage.getItem("acceso_permitido") !== "true") {
-            var intento = prompt("🔐 ACCESO\nIngrese clave:");
-            if (intento === claveCorrecta) { sessionStorage.setItem("acceso_permitido", "true"); }
-            else { window.location.href = "https://google.com"; }
-        }
-    </script>
-
+    
+    <!-- CSS Dependencies -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-
+    
     <style>
-        * { box-sizing: border-box; }
-        body { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%); min-height: 100vh; color: #e8e8e8; font-family: 'Segoe UI', sans-serif; padding: 0; margin: 0; }
-        .app-header { background: linear-gradient(135deg, #00d4ff 0%, #0077b6 50%, #004a99 100%); color: white; padding: 20px 15px; text-align: center; box-shadow: 0 4px 30px rgba(0, 212, 255, 0.3); position: relative; overflow: hidden; }
-        .app-header h1 { font-size: 1.6rem; font-weight: 700; text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3); position: relative; z-index: 1; margin: 0; }
-        .app-header p { opacity: 0.9; font-size: 0.9rem; margin-top: 5px; position: relative; z-index: 1; margin-bottom: 0; }
-        .main-container { max-width: 1400px; margin: 0 auto; padding: 15px 10px; }
-        .nav-tabs-custom { display: flex; gap: 10px; margin-bottom: 20px; justify-content: center; }
-        .tab-btn { background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(0, 212, 255, 0.3); color: #ccc; padding: 10px 20px; border-radius: 50px; cursor: pointer; font-size: 0.9rem; font-weight: 600; transition: all 0.3s ease; backdrop-filter: blur(10px); }
-        .tab-btn:hover { background: rgba(0, 212, 255, 0.2); border-color: #00d4ff; color: white; }
-        .tab-btn.active { background: linear-gradient(135deg, #00d4ff, #0077b6); border-color: #00d4ff; color: white; box-shadow: 0 5px 25px rgba(0, 212, 255, 0.4); }
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.3s ease; }
-        
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .search-wrapper { max-width: 700px; margin: 0 auto 20px auto; }
-        #mainSearch { background: rgba(255, 255, 255, 0.95); border: none; border-radius: 50px !important; padding: 15px 25px !important; width: 100% !important; font-size: 1rem; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3); outline: none; color: #333; transition: all 0.3s ease; }
-        #mainSearch:focus { box-shadow: 0 10px 50px rgba(0, 212, 255, 0.5); }
-        
-        .analysis-panel { background: rgba(255, 255, 255, 0.05); border-radius: 20px; padding: 20px; backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.1); }
-        .paste-area { background: rgba(0, 0, 0, 0.3); border: 2px dashed rgba(0, 212, 255, 0.5); border-radius: 15px; padding: 15px; min-height: 150px; color: #ccc; font-family: 'Consolas', 'Monaco', monospace; font-size: 0.85rem; resize: vertical; width: 100%; outline: none; transition: all 0.3s ease; }
-        .btn-analyze { background: linear-gradient(135deg, #00d4ff, #0077b6); border: none; color: white; padding: 12px 35px; border-radius: 50px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; margin-top: 15px; box-shadow: 0 5px 25px rgba(0, 212, 255, 0.4); }
-        .btn-clear { background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); color: #ccc; padding: 12px 25px; border-radius: 50px; font-size: 0.9rem; cursor: pointer; transition: all 0.3s ease; margin-top: 15px; margin-left: 10px; }
-        
-        .results-panel { margin-top: 25px; display: none; }
-        .results-panel.visible { display: block; }
-        .stats-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin-bottom: 20px; }
-        .stat-card { background: rgba(255, 255, 255, 0.08); border-radius: 15px; padding: 15px; text-align: center; border: 1px solid rgba(255, 255, 255, 0.1); }
-        .stat-card .number { font-size: 2rem; font-weight: 700; background: linear-gradient(135deg, #00d4ff, #ff6b6b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        
-        #contenedorTabla, #contenedorResultados { background: rgba(255, 255, 255, 0.95); border-radius: 20px; padding: 15px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); color: #333; overflow-x: auto; }
-        .table { color: #333 !important; }
-        .table thead th { background: linear-gradient(135deg, #004a99, #0077b6) !important; color: white !important; font-size: 0.75rem; padding: 12px 10px !important; }
-
-        .fila-cancelada { background-color: #ffcccc !important; color: #990000 !important; font-weight: 500; }
-        .fila-inactiva { background-color: #e2e8f0 !important; color: #475569 !important; }
-        .not-found { background: rgba(255, 82, 82, 0.1) !important; color: #ff5252 !important; }
-
-        .qr-badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-weight: 600; font-size: 0.8rem; }
-        .qr-hot { background: linear-gradient(135deg, #ff416c, #ff4b2b); color: white; }
-        .qr-warm { background: linear-gradient(135deg, #f7971e, #ffd200); color: #333; }
-        .qr-normal { background: rgba(0, 119, 182, 0.15); color: #0077b6; }
-        .footer-info { text-align: center; padding: 15px; color: #aaa; font-size: 0.85rem; }
+        body {
+            background-color: #0f172a;
+            color: #f8fafc;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        }
+        .login-card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 1rem;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .form-control {
+            background-color: #0f172a;
+            border-color: #334155;
+            color: #f8fafc;
+        }
+        .form-control:focus {
+            background-color: #0f172a;
+            border-color: #38bdf8;
+            color: #f8fafc;
+            box-shadow: 0 0 0 0.25rem rgba(56, 189, 248, 0.25);
+        }
+        .btn-custom {
+            background-color: #0284c7;
+            color: white;
+            font-weight: 600;
+        }
+        .btn-custom:hover {
+            background-color: #0369a1;
+            color: white;
+        }
+        .badge-user {
+            background-color: #334155;
+            color: #38bdf8;
+            border: 1px solid #0284c7;
+        }
+        /* Estilos de alertas y tabla */
+        .bg-hot { background-color: #7f1d1d !important; color: #fecaca !important; }
+        .bg-warm { background-color: #7c2d12 !important; color: #fed7aa !important; }
+        .bg-normal { background-color: #064e3b !important; color: #a7f3d0 !important; }
+        .bg-inactive { background-color: #334155 !important; color: #94a3b8 !important; text-decoration: line-through; }
+        .card-stat { background-color: #1e293b; border: 1px solid #334155; }
     </style>
 </head>
-
 <body>
 
-    <div class="app-header">
-        <h1>🛰️ SISTEMA CORE TECAMAC</h1>
-        <p>Análisis de Red y Afectaciones Masivas</p>
+    <!-- PANTALLA DE LOGIN -->
+    <div id="loginContainer" class="container d-flex justify-content-center align-items-center vh-100">
+        <div class="card login-card p-4 w-100" style="max-width: 400px;">
+            <div class="text-center mb-4">
+                <h3 class="fw-bold text-info mb-1">RED TECAMAC</h3>
+                <p class="text-secondary small">Análisis de Afectaciones</p>
+            </div>
+            
+            <form id="loginForm" onsubmit="event.preventDefault(); verificarAcceso();">
+                <div class="mb-3">
+                    <label for="userInput" class="form-label small text-uppercase fw-semibold text-secondary">Usuario</label>
+                    <input type="text" id="userInput" class="form-control" placeholder="Ingresa tu usuario" required autocomplete="username">
+                </div>
+                <div class="mb-3">
+                    <label for="passInput" class="form-label small text-uppercase fw-semibold text-secondary">Contraseña</label>
+                    <input type="password" id="passInput" class="form-control" placeholder="••••••••" required autocomplete="current-password">
+                </div>
+                
+                <div id="errorAlert" class="alert alert-danger py-2 small d-none" role="alert">
+                    ⚠️ Usuario o contraseña incorrectos.
+                </div>
+
+                <button type="submit" class="btn btn-custom w-100 py-2 mt-2">Iniciar Sesión</button>
+            </form>
+        </div>
     </div>
 
-    <div class="main-container">
-
-        <div class="nav-tabs-custom">
-            <button class="tab-btn active" data-tab="busqueda">🔍 Búsqueda Individual</button>
-            <button class="tab-btn" data-tab="analisis">📊 Análisis Masivo</button>
+    <!-- CONTENIDO PRINCIPAL DE LA APP -->
+    <div id="appContainer" class="container-fluid py-3 d-none">
+        
+        <!-- Encabezado con Info de Usuario -->
+        <div class="d-flex justify-content-between align-items-center mb-3 p-3 bg-dark rounded border border-secondary">
+            <div>
+                <h4 class="m-0 fw-bold text-info">RED TECAMAC</h4>
+                <span class="badge badge-user mt-1" id="userBadge">Usuario: --</span>
+            </div>
+            <button class="btn btn-outline-danger btn-sm" onclick="cerrarSesion()">Cerrar Sesión</button>
         </div>
 
-        <div id="tab-busqueda" class="tab-content active">
-            <div class="search-wrapper">
-                <input type="text" id="mainSearch" placeholder="🔍 Buscar por Cuenta, QR u OLT..." autocomplete="off">
+        <!-- Panel de Buscador Individual -->
+        <div class="card card-stat mb-4 p-3">
+            <h5 class="text-info fw-bold mb-3">🔍 Búsqueda Individual</h5>
+            <div class="row g-2">
+                <div class="col-md-9 col-12">
+                    <input type="text" id="searchInput" class="form-control" placeholder="Ingresa Cuenta, QR u OLT para filtrar...">
+                </div>
+                <div class="col-md-3 col-12">
+                    <button class="btn btn-custom w-100" onclick="buscarManual()">Buscar / Filtrar</button>
+                </div>
             </div>
-            <div id="mensajeVacio" class="text-center mt-4">
-                <p style="font-size: 2.5rem; margin-bottom: 5px;">📡</p>
+        </div>
 
-                <p id="loadingStatus">Cargando base de datos...</p>
+        <!-- Panel de Análisis Masivo -->
+        <div class="card card-stat mb-4 p-3">
+            <h5 class="text-info fw-bold mb-3">📊 Análisis Masivo de Afectaciones</h5>
+            <div class="mb-3">
+                <textarea id="masivoInput" class="form-control" rows="3" placeholder="Pega aquí el bloque de texto con Cuentas de reporte..."></textarea>
             </div>
-            <div id="contenedorTabla" style="display: none;">
-                <table id="tablaMaestra" class="table table-hover w-100">
+            <div class="d-flex gap-2">
+                <button class="btn btn-warning fw-bold text-dark" onclick="procesarMasivo()">Procesar Lista</button>
+                <button class="btn btn-outline-secondary" onclick="limpiarMasivo()">Limpiar</button>
+            </div>
+            
+            <!-- Tarjetas de Resumen Masivo -->
+            <div id="resumenMasivo" class="row mt-3 g-2 d-none">
+                <div class="col-6 col-md-3">
+                    <div class="p-2 rounded bg-hot text-center">
+                        <small class="d-block fw-bold">HOT (Critical)</small>
+                        <span id="cntHot" class="fs-4 fw-bold">0</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-2 rounded bg-warm text-center">
+                        <small class="d-block fw-bold">WARM (Warning)</small>
+                        <span id="cntWarm" class="fs-4 fw-bold">0</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-2 rounded bg-normal text-center">
+                        <small class="d-block fw-bold">NORMAL</small>
+                        <span id="cntNormal" class="fs-4 fw-bold">0</span>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="p-2 rounded bg-inactive text-center">
+                        <small class="d-block fw-bold">CANCELADOS/INACT</small>
+                        <span id="cntInactivos" class="fs-4 fw-bold">0</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tabla General de Datos -->
+        <div class="card card-stat p-3">
+            <div class="table-responsive">
+                <table id="tablaDatos" class="table table-dark table-striped table-hover w-100 align-middle">
                     <thead>
                         <tr>
-                            <th>Cuenta</th> <th>QR</th> <th>OLT</th> <th>FSP</th> <th>Lat</th> <th>Lon</th> <th>Ubicación</th> <th>Puerto N2</th> <th>Estatus</th>
+                            <th>Cuenta</th>
+                            <th>Estado</th>
+                            <th>QR</th>
+                            <th>OLT</th>
+                            <th>Detalles</th>
                         </tr>
                     </thead>
+                    <tbody id="tablaBody">
+                        <!-- Se llena dinámicamente -->
+                    </tbody>
                 </table>
             </div>
         </div>
 
-        <div id="tab-analisis" class="tab-content">
-            <div class="analysis-panel">
-                <h4 style="color: #00d4ff; margin-bottom: 15px;">📋 Pegar datos del OLT</h4>
-                <textarea id="pasteArea" class="paste-area" placeholder="Pega aquí los datos del OLT..."></textarea>
-                <div class="text-center">
-                    <button class="btn-analyze" onclick="analizarDatos()">🔎 Analizar Afectación</button>
-                    <button class="btn-clear" onclick="limpiarAnalisis()">🗑️ Limpiar</button>
-                </div>
-            </div>
-
-            <div id="resultadosAnalisis" class="results-panel">
-                <div class="stats-cards">
-                    <div class="stat-card">
-                        <div class="number" id="statTotal">0</div>
-                        <div class="label">Clientes Analizados</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="number" id="statEncontrados">0</div>
-                        <div class="label">Encontrados</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="number" id="statNoEncontrados">0</div>
-                        <div class="label">No Encontrados</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="number" id="statQRs">0</div>
-                        <div class="label">QRs Afectados</div>
-                    </div>
-                </div>
-
-                <div id="contenedorResultados">
-                    <table id="tablaResultados" class="table table-hover w-100">
-                        <thead>
-                            <tr>
-                                <th>Cuenta</th> <th>QR</th> <th>OLT</th> <th>FSP</th> <th>Lat</th> <th>Lon</th> <th>Estatus</th> <th>Clientes en QR</th>
-                            </tr>
-                        </thead>
-                        <tbody id="bodyResultados"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <div class="footer-info">
-        Sistema Core Tecamac | Datos cargados: <span id="totalRegistros">0</span> registros
-    </div>
-
+    <!-- SCRIPTS -->
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
 
     <script>
-        $.fn.dataTable.ext.errMode = 'none';
+        // ==========================================
+        // 1. CONFIGURACIÓN DE USUARIOS AUTORIZADOS
+        // ==========================================
+        const USUARIOS_AUTORIZADOS = {
+            "ANTONIO": "Tecamac2026*",
+            "MILDRED": "MA123",
+            "SUPERVISOR": "Tecamac2026*",
+            "FRANCISCO": "Tecamac2026*"
+        };
 
-        var table;
-        var tableResultados;
-        var datosCSV = [];
-        var datosIndexados = {};
+        let dataTableInstancia = null;
+        let datosCSVGlobal = [];
 
-        $(document).ready(function () {
-            $('.tab-btn').on('click', function () {
-                var tabId = $(this).data('tab');
-                $('.tab-btn').removeClass('active');
-                $(this).addClass('active');
-                $('.tab-content').removeClass('active');
-                $('#tab-' + tabId).addClass('active');
-            });
-
-            // Carga asíncrona optimizada para no congelar la pantalla móvil
-            setTimeout(function() {
-                Papa.parse("datos.csv", {
-                    download: true,
-                    header: false,
-                    skipEmptyLines: true,
-                    complete: function (results) {
-                        datosCSV = results.data.slice(1);
-                        $('#totalRegistros').text(datosCSV.length.toLocaleString());
-                        $('#loadingStatus').text('Ingresa un término de búsqueda...');
-
-                        datosCSV.forEach(function (row) {
-                            if (row[0]) {
-                                var cuentaLimpia = row[0].replace(/[^0-9]/g, '').trim();
-                                datosIndexados[cuentaLimpia] = row;
-                            }
-                        });
-
-                        table = $('#tablaMaestra').DataTable({
-                            data: datosCSV,
-                            deferRender: true,
-                            scrollY: "50vh",
-                            scrollCollapse: true,
-                            dom: 'rtip',
-                            pageLength: 15,
-                            language: { "info": "Mostrando _TOTAL_ registros", "paginate": { "next": "Sig", "previous": "Ant" } },
-                            columnDefs: [{ targets: 8, defaultContent: "ACTIVA" }],
-                            createdRow: function(row, data, dataIndex) {
-                                var estatus = (data[8] || "").toUpperCase().trim();
-                                if (estatus === "CANCELADA") $(row).addClass('fila-cancelada');
-                                else if (estatus === "INACTIVA") $(row).addClass('fila-inactiva');
-                            }
-                        });
-
-                        $('#mainSearch').on('keyup input', function () {
-                            var val = $(this).val().trim();
-                            if (val.length < 1) {
-                                $('#contenedorTabla').hide();
-                                $('#mensajeVacio').show();
-                                table.search('').draw();
-                            } else {
-                                $('#contenedorTabla').show();
-                                $('#mensajeVacio').hide();
-                                table.search(val).draw();
-                            }
-                        });
-                    }
-                });
-            }, 100);
+        document.addEventListener("DOMContentLoaded", function() {
+            const usuarioGuardado = sessionStorage.getItem("usuario_tecamac");
+            if (usuarioGuardado) {
+                mostrarApp(usuarioGuardado);
+            }
         });
 
-        function extraerCuentas(texto) {
-            var cuentas = [];
-            var lineas = texto.split('\n');
-            lineas.forEach(function (linea) {
-                linea = linea.trim();
-                if (!linea) return;
-                var matchDesc = linea.match(/(\d{10})_TP_/i);
-                if (matchDesc) {
-                    cuentas.push(matchDesc[1]);
-                } else {
-                    var matchNumeros = linea.match(/\b(0\d{9})\b/g);
-                    if (matchNumeros) { matchNumeros.forEach(n => cuentas.push(n)); }
-                }
-            });
-            return [...new Set(cuentas)];
+        function verificarAcceso() {
+            const user = document.getElementById("userInput").value.trim().toLowerCase();
+            const pass = document.getElementById("passInput").value;
+            const alertBox = document.getElementById("errorAlert");
+
+            if (USUARIOS_AUTORIZADOS[user] && USUARIOS_AUTORIZADOS[user] === pass) {
+                alertBox.classList.add("d-none");
+                sessionStorage.setItem("usuario_tecamac", user);
+                mostrarApp(user);
+            } else {
+                alertBox.classList.remove("d-none");
+                document.getElementById("passInput").value = "";
+                document.getElementById("passInput").focus();
+            }
         }
 
-        function analizarDatos() {
-            var texto = $('#pasteArea').val();
-            if (!texto.trim()) return alert('Pega los datos primero.');
+        function mostrarApp(usuario) {
+            document.getElementById("loginContainer").classList.add("d-none");
+            document.getElementById("appContainer").classList.remove("d-none");
+            document.getElementById("userBadge").innerText = "Usuario: " + usuario.toUpperCase();
+            
+            setTimeout(() => {
+                cargarDatosCSV();
+            }, 300);
+        }
 
-            if (tableResultados) { tableResultados.destroy(); }
+        function cerrarSesion() {
+            sessionStorage.removeItem("usuario_tecamac");
+            document.getElementById("appContainer").classList.add("d-none");
+            document.getElementById("loginContainer").classList.remove("d-none");
+            document.getElementById("userInput").value = "";
+            document.getElementById("passInput").value = "";
+            document.getElementById("errorAlert").classList.add("d-none");
+        }
 
-            var cuentas = extraerCuentas(texto);
-            var conteoQR = {};
-            var encontrados = 0;
-            var noEncontrados = 0;
-            var html = '';
+        // ==========================================
+        // 2. LÓGICA DE DATOS CSV Y TABLA
+        // ==========================================
+        function cargarDatosCSV() {
+            Papa.parse("./datos.csv", {
+                download: true,
+                header: true,
+                skipEmptyLines: true,
+                complete: function(results) {
+                    datosCSVGlobal = results.data;
+                    renderizarTabla(datosCSVGlobal);
+                },
+                error: function(err) {
+                    console.error("Error cargando el archivo CSV:", err);
+                }
+            });
+        }
 
-            cuentas.forEach(c => {
-                var d = datosIndexados[c];
-                if(d) {
-                    var qr = d[1] || 'N/A';
+        function renderizarTabla(datos) {
+            if (dataTableInstancia) {
+                dataTableInstancia.destroy();
+            }
+
+            const body = document.getElementById("tablaBody");
+            body.innerHTML = "";
+
+            datos.forEach(item => {
+                const tr = document.createElement("tr");
+                
+                // Aplicar estilo de cancelado/inactivo si aplica
+                const estado = (item.Estado || item.ESTADO || "").toUpperCase();
+                if (estado.includes("CANCEL") || estado.includes("INACT") || estado.includes("BAJA")) {
+                    tr.classList.add("bg-inactive");
+                }
+
+                tr.innerHTML = `
+                    <td><strong>${item.Cuenta || item.CUENTA || '-'}</strong></td>
+                    <td>${item.Estado || item.ESTADO || '-'}</td>
+                    <td>${item.QR || item.qr || '-'}</td>
+                    <td>${item.OLT || item.olt || '-'}</td>
+                    <td>${item.Detalles || item.DETALLES || '-'}</td>
+                `;
+                body.appendChild(tr);
+            });
+
+            dataTableInstancia = $('#tablaDatos').DataTable({
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.6/i18n/es-ES.json'
+                },
+                pageLength: 10,
+                responsive: true
+            });
+        }
+
+        function buscarManual() {
+            const val = document.getElementById("searchInput").value;
+            if (dataTableInstancia) {
+                dataTableInstancia.search(val).draw();
+            }
+        }
+
+        // ==========================================
+        // 3. ANÁLISIS MASIVO DE CUENTAS
+        // ==========================================
+        function procesarMasivo() {
+            const texto = document.getElementById("masivoInput").value;
+            if (!texto.trim()) return;
+
+            // Extraer cuentas (_TP_ o 10 dígitos)
+            const regex = /(_TP_\d+|\b\d{10}\b)/gi;
+            const encontradas = [...new Set(texto.match(regex) || [])];
+
+            if (encontradas.length === 0) {
+                alert("No se encontraron coincidencias de cuentas válidas.");
+                return;
+            }
+
+            // Filtrar los datos cargados correspondientes a las cuentas
+            const coincidencia = datosCSVGlobal.filter(d => {
+                const c = (d.Cuenta || d.CUENTA || "").trim();
+                return encontradas.some(e => e.toLowerCase() === c.toLowerCase());
+            });
+
+            // Conteo por QR
+            const conteoQR = {};
+            let hot = 0, warm = 0, normal = 0, inactivos = 0;
+
+            coincidencia.forEach(d => {
+                const est = (d.Estado || d.ESTADO || "").toUpperCase();
+                if (est.includes("CANCEL") || est.includes("INACT") || est.includes("BAJA")) {
+                    inactivos++;
+                } else {
+                    const qr = d.QR || d.qr || "SIN_QR";
                     conteoQR[qr] = (conteoQR[qr] || 0) + 1;
                 }
             });
 
-            cuentas.forEach(function (cuenta) {
-                var d = datosIndexados[cuenta];
-                if (d) {
-                    encontrados++;
-                    var est = (d[8] || "ACTIVA").toUpperCase().trim();
-                    var qrCount = conteoQR[d[1]] || 0;
-                    var badgeClass = qrCount >= 5 ? 'qr-hot' : (qrCount >= 3 ? 'qr-warm' : 'qr-normal');
-                    var rowCl = (est === "CANCELADA") ? "fila-cancelada" : (est === "INACTIVA" ? "fila-inactiva" : "");
-
-                    html += `<tr class="${rowCl}">
-                        <td><strong>${cuenta}</strong></td>
-                        <td><span class="qr-badge ${badgeClass}">${d[1]}</span></td>
-                        <td>${d[2]}</td>
-                        <td>${d[3]}</td>
-                        <td>${d[4] || ''}</td>
-                        <td>${d[5] || ''}</td>
-                        <td>${est}</td>
-                        <td>${qrCount}</td>
-                    </tr>`;
-                } else {
-                    noEncontrados++;
-                    html += `<tr class="not-found"><td>${cuenta}</td><td colspan="7">NO ENCONTRADO EN BASE</td></tr>`;
-                }
+            // Clasificación por nivel de criticidad
+            Object.values(conteoQR).forEach(cnt => {
+                if (cnt >= 5) hot++;
+                else if (cnt >= 2) warm++;
+                else normal++;
             });
 
-            $('#bodyResultados').html(html);
-            
-            tableResultados = $('#tablaResultados').DataTable({
-                dom: 'rtip',
-                pageLength: 25,
-                language: { "info": "Mostrando _TOTAL_ resultados" }
-            });
+            // Actualizar tarjetas de conteo
+            document.getElementById("cntHot").innerText = hot;
+            document.getElementById("cntWarm").innerText = warm;
+            document.getElementById("cntNormal").innerText = normal;
+            document.getElementById("cntInactivos").innerText = inactivos;
+            document.getElementById("resumenMasivo").classList.remove("d-none");
 
-            $('#statTotal').text(cuentas.length);
-            $('#statEncontrados').text(encontrados);
-            $('#statNoEncontrados').text(noEncontrados);
-            $('#statQRs').text(Object.keys(conteoQR).length);
-            $('#resultadosAnalisis').addClass('visible');
+            // Mostrar resultados en la tabla
+            renderizarTabla(coincidencia);
         }
 
-        function limpiarAnalisis() {
-            if (tableResultados) { tableResultados.destroy(); tableResultados = null; }
-            $('#bodyResultados').empty();
-            $('#pasteArea').val('');
-            $('#resultadosAnalisis').removeClass('visible');
+        function limpiarMasivo() {
+            document.getElementById("masivoInput").value = "";
+            document.getElementById("resumenMasivo").classList.add("d-none");
+            renderizarTabla(datosCSVGlobal);
         }
 
-        // Registro de Service Worker para PWA
+        // Registro del Service Worker PWA
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-                navigator.serviceWorker.register('./sw.js').then(function(reg) {
-                    console.log('ServiceWorker activo:', reg.scope);
-                }, function(err) {
-                    console.log('Error en ServiceWorker:', err);
-                });
-            });
+            navigator.serviceWorker.register('./sw.js')
+                .then(() => console.log('Service Worker Activo'))
+                .catch(err => console.error('Error SW:', err));
         }
     </script>
 </body>
