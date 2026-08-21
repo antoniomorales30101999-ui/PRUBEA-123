@@ -326,11 +326,11 @@
             lineas.forEach(function (linea) {
                 linea = linea.trim();
                 if (!linea) return;
-                var matchDesc = linea.match(/(\d{10})_TP_/i);
+                var matchDesc = linea.match(/(\d{10})_/);
                 if (matchDesc) {
                     cuentas.push(matchDesc[1]);
                 } else {
-                    var matchNumeros = linea.match(/\b(0\d{9})\b/g);
+                    var matchNumeros = linea.match(/\d{10}/g);
                     if (matchNumeros) { matchNumeros.forEach(n => cuentas.push(n)); }
                 }
             });
